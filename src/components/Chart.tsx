@@ -75,16 +75,34 @@ function getEmptyOptions(width: number, height: number): uPlot.Options {
       {},
       {
         label: 'No data',
-        stroke: '#3b82f6',
+        stroke: '#60a5fa',
         width: 2,
       },
     ],
     axes: [
       {
         label: 'Time',
+        stroke: '#475569',
+        grid: {
+          stroke: '#334155',
+          width: 1,
+        },
+        ticks: {
+          stroke: '#475569',
+          width: 1,
+        },
       },
       {
         label: 'Value',
+        stroke: '#475569',
+        grid: {
+          stroke: '#334155',
+          width: 1,
+        },
+        ticks: {
+          stroke: '#475569',
+          width: 1,
+        },
       },
     ],
   };
@@ -111,6 +129,15 @@ function getChartOptions(series: DataSeries[], width: number, height: number): u
       {
         label: 'Time',
         space: 60,
+        stroke: '#475569',
+        grid: {
+          stroke: '#334155',
+          width: 1,
+        },
+        ticks: {
+          stroke: '#475569',
+          width: 1,
+        },
         values: (_, ticks) =>
           ticks.map((t) => {
             const date = new Date(t * 1000);
@@ -120,6 +147,15 @@ function getChartOptions(series: DataSeries[], width: number, height: number): u
       {
         label: 'Value',
         space: 50,
+        stroke: '#475569',
+        grid: {
+          stroke: '#334155',
+          width: 1,
+        },
+        ticks: {
+          stroke: '#475569',
+          width: 1,
+        },
       },
     ],
     scales: {

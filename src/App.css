@@ -2,20 +2,22 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f9fafb;
+  background-color: #0f172a;
 }
 
 .app-header {
-  background-color: #1f2937;
-  color: white;
+  background-color: #1e293b;
+  color: #f1f5f9;
   padding: 1rem 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid #334155;
 }
 
 .app-header h1 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
+  color: #f1f5f9;
 }
 
 .app-main {
@@ -28,10 +30,11 @@
 }
 
 .controls {
-  background: white;
+  background: #1e293b;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  border: 1px solid #334155;
   margin-bottom: 1.5rem;
 }
 
@@ -55,28 +58,32 @@
 
 .url-form label {
   font-weight: 500;
-  color: #374151;
+  color: #cbd5e1;
   white-space: nowrap;
 }
 
 .url-form input {
   flex: 1;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #475569;
+  background-color: #0f172a;
+  color: #e2e8f0;
   border-radius: 6px;
   font-size: 0.875rem;
   font-family: "Courier New", monospace;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background-color 0.2s;
 }
 
 .url-form input:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background-color: #1e293b;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .url-form input:disabled {
-  background-color: #f3f4f6;
+  background-color: #1e293b;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -85,7 +92,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: #f3f4f6;
+  background-color: #0f172a;
+  border: 1px solid #334155;
   border-radius: 6px;
 }
 
@@ -109,7 +117,7 @@
 .status-text {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: #cbd5e1;
 }
 
 .button-group {
@@ -120,7 +128,7 @@
 
 .btn {
   padding: 0.5rem 1rem;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
@@ -136,26 +144,33 @@
 .btn-primary {
   background-color: #3b82f6;
   color: white;
+  border-color: #3b82f6;
 }
 
 .btn-primary:hover:not(:disabled) {
   background-color: #2563eb;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .btn-secondary {
-  background-color: #6b7280;
-  color: white;
+  background-color: #475569;
+  color: #f1f5f9;
+  border-color: #64748b;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #4b5563;
+  background-color: #334155;
+  border-color: #475569;
+  box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.2);
 }
 
 .chart-wrapper {
-  background: white;
+  background: #1e293b;
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  border: 1px solid #334155;
   overflow-x: auto;
 }
 
@@ -163,19 +178,55 @@
   min-height: 300px;
 }
 
+/* Dark theme for uPlot chart */
+.chart-container .u-over,
+.chart-container .u-under {
+  background-color: #1e293b;
+}
+
+.chart-container .u-title {
+  color: #e2e8f0;
+}
+
+.chart-container .u-legend {
+  color: #e2e8f0;
+}
+
+.chart-container .u-legend .u-series {
+  color: #cbd5e1;
+}
+
+.chart-container .u-legend .u-value {
+  color: #e2e8f0;
+}
+
+.chart-container .u-cursor-x,
+.chart-container .u-cursor-y {
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.chart-container .u-hz .u-cursor-pt {
+  background: #94a3b8;
+  border-color: #64748b;
+}
+
 .error-message {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
+  background-color: #7f1d1d;
+  border: 1px solid #991b1b;
+  color: #fecaca;
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
 }
 
+.error-message strong {
+  color: #fca5a5;
+}
+
 .info-message {
-  background-color: #eff6ff;
-  border: 1px solid #dbeafe;
-  color: #1e40af;
+  background-color: #1e3a5f;
+  border: 1px solid #1e40af;
+  color: #bfdbfe;
   padding: 1rem;
   border-radius: 6px;
   margin-top: 1rem;
