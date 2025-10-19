@@ -176,10 +176,15 @@
 
 .chart-container {
   min-height: 300px;
+  position: relative;
+  isolation: isolate; /* Create new stacking context */
 }
 
 /* Dark theme for uPlot chart */
-.chart-container .u-over,
+.chart-container .u-over {
+  pointer-events: none; /* Allow interaction with canvas below */
+}
+
 .chart-container .u-under {
   background-color: #1e293b;
 }
@@ -208,6 +213,46 @@
 .chart-container .u-hz .u-cursor-pt {
   background: #94a3b8;
   border-color: #64748b;
+}
+
+/* Ensure canvas rendering */
+.chart-container canvas {
+  image-rendering: auto;
+}
+
+/* uPlot canvas layer order - ensure lines canvas is visible */
+.chart-container .uplot {
+  position: relative;
+}
+
+.chart-container .u-wrap {
+  position: relative;
+}
+
+.chart-container .u-over {
+  position: absolute !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+}
+
+.chart-container .u-under {
+  position: absolute !important;
+  z-index: 1 !important;
+  background-color: #1e293b !important;
+}
+
+/* The canvas that draws the series should be visible */
+.chart-container canvas {
+  position: absolute !important;
+  z-index: 5 !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+/* Make sure series lines are visible */
+.u-series path {
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .error-message {

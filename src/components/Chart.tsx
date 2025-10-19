@@ -48,14 +48,18 @@ function Chart({ series, width, height }: ChartProps) {
 
     // Sort by timestamp and convert to uPlot format
     const sortedTimestamps = Array.from(timestampMap.keys()).sort((a, b) => a - b);
-    const timestamps = sortedTimestamps.map((t) => t / 1000); // Convert to seconds for uPlot
+    
+    // Normalize timestamps relative to first timestamp for better rendering
+    const baseTimestamp = sortedTimestamps[0] || 0;
+    const timestamps = sortedTimestamps.map((t) => (t - baseTimestamp) / 1000); // Seconds from start
+    
     const seriesData = series.map((_, idx) =>
       sortedTimestamps.map((t) => timestampMap.get(t)?.[idx])
     );
 
     const data: uPlot.AlignedData = [timestamps, ...seriesData];
 
-    const options = getChartOptions(series, width, height);
+    const options = getChartOptions(series, width, height, baseTimestamp);
 
     return { data, options };
   }, [series, width, height]);
@@ -108,10 +112,11 @@ function getEmptyOptions(width: number, height: number): uPlot.Options {
   };
 }
 
-function getChartOptions(series: DataSeries[], width: number, height: number): uPlot.Options {
+function getChartOptions(series: DataSeries[], width: number, height: number, baseTimestamp: number): uPlot.Options {
   return {
     width,
     height,
+    pxAlign: false,
     series: [
       {
         label: 'Time',
@@ -123,6 +128,7 @@ function getChartOptions(series: DataSeries[], width: number, height: number): u
         points: {
           show: false,
         },
+        spanGaps: true,
       })),
     ],
     axes: [
@@ -140,7 +146,9 @@ function getChartOptions(series: DataSeries[], width: number, height: number): u
         },
         values: (_, ticks) =>
           ticks.map((t) => {
-            const date = new Date(t * 1000);
+            // Convert back to actual timestamp
+            const actualTimestamp = baseTimestamp + t * 1000;
+            const date = new Date(actualTimestamp);
             return date.toLocaleTimeString();
           }),
       },
@@ -161,6 +169,10 @@ function getChartOptions(series: DataSeries[], width: number, height: number): u
     scales: {
       x: {
         time: false,
+        auto: true,
+      },
+      y: {
+        auto: true,
       },
     },
     legend: {
