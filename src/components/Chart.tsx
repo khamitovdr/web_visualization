@@ -180,9 +180,24 @@ function getChartOptions(series: DataSeries[], width: number, height: number, ba
       live: true,
     },
     cursor: {
+      show: true,
+      x: true,
+      y: true,
+      lock: false,
       drag: {
         x: false,
         y: false,
+      },
+      sync: {
+        key: 'default',
+      },
+      focus: {
+        prox: 16,
+      },
+      points: {
+        show: true,
+        size: 8,
+        width: 2,
       },
     },
   };

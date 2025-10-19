@@ -181,10 +181,6 @@
 }
 
 /* Dark theme for uPlot chart */
-.chart-container .u-over {
-  pointer-events: none; /* Allow interaction with canvas below */
-}
-
 .chart-container .u-under {
   background-color: #1e293b;
 }
@@ -195,24 +191,52 @@
 
 .chart-container .u-legend {
   color: #e2e8f0;
+  font-size: 14px;
 }
 
 .chart-container .u-legend .u-series {
   color: #cbd5e1;
 }
 
+.chart-container .u-legend .u-label {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
 .chart-container .u-legend .u-value {
-  color: #e2e8f0;
+  color: #f1f5f9;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+/* Highlight active series on hover */
+.chart-container .u-legend .u-series.u-focus {
+  opacity: 1;
+}
+
+.chart-container .u-legend .u-series:not(.u-focus) {
+  opacity: 0.5;
 }
 
 .chart-container .u-cursor-x,
 .chart-container .u-cursor-y {
-  background: rgba(148, 163, 184, 0.1);
+  background: rgba(148, 163, 184, 0.3);
 }
 
 .chart-container .u-hz .u-cursor-pt {
-  background: #94a3b8;
-  border-color: #64748b;
+  background: #3b82f6;
+  border: 2px solid #1e293b;
+  box-shadow: 0 0 0 1px #60a5fa;
+}
+
+/* Vertical cursor line */
+.chart-container .u-cursor-x {
+  border-left: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+/* Horizontal cursor line */
+.chart-container .u-cursor-y {
+  border-top: 1px solid rgba(148, 163, 184, 0.5);
 }
 
 /* Ensure canvas rendering */
@@ -229,10 +253,11 @@
   position: relative;
 }
 
+/* Overlay for interaction - keep pointer events */
 .chart-container .u-over {
   position: absolute !important;
   z-index: 10 !important;
-  pointer-events: none !important;
+  pointer-events: auto !important;
 }
 
 .chart-container .u-under {
@@ -241,12 +266,17 @@
   background-color: #1e293b !important;
 }
 
-/* The canvas that draws the series should be visible */
+/* The canvas that draws the series should be visible but not block interaction */
 .chart-container canvas {
   position: absolute !important;
-  z-index: 5 !important;
   opacity: 1 !important;
   display: block !important;
+}
+
+/* Ensure series canvas is below overlay but visible */
+.chart-container canvas:not(.u-over) {
+  z-index: 5 !important;
+  pointer-events: none !important;
 }
 
 /* Make sure series lines are visible */
