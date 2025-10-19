@@ -1,5 +1,5 @@
-import { useState, FormEvent } from 'react';
-import { ConnectionStatus } from '../services/websocket';
+import { type FormEvent, useId, useState } from 'react';
+import type { ConnectionStatus } from '../services/websocket';
 
 interface ControlsProps {
   serverUrl: string;
@@ -23,6 +23,7 @@ export default function Controls({
   connectionStatus,
 }: ControlsProps) {
   const [inputUrl, setInputUrl] = useState(serverUrl);
+  const inputId = useId();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -65,9 +66,9 @@ export default function Controls({
     <div className="controls">
       <div className="controls-row">
         <form onSubmit={handleSubmit} className="url-form">
-          <label htmlFor="server-url">Server Address:</label>
+          <label htmlFor={inputId}>Server Address:</label>
           <input
-            id="server-url"
+            id={inputId}
             type="text"
             value={inputUrl}
             onChange={(e) => setInputUrl(e.target.value)}
@@ -77,10 +78,7 @@ export default function Controls({
         </form>
 
         <div className="status">
-          <span
-            className="status-indicator"
-            style={{ backgroundColor: getStatusColor() }}
-          />
+          <span className="status-indicator" style={{ backgroundColor: getStatusColor() }} />
           <span className="status-text">{getStatusText()}</span>
         </div>
       </div>
@@ -88,25 +86,26 @@ export default function Controls({
       <div className="controls-row">
         <div className="button-group">
           {!isConnected && !isConnecting && (
-            <button onClick={onConnect} className="btn btn-primary">
+            <button type="button" onClick={onConnect} className="btn btn-primary">
               Connect
             </button>
           )}
           {(isConnected || isConnecting) && (
-            <button onClick={onDisconnect} className="btn btn-secondary">
+            <button type="button" onClick={onDisconnect} className="btn btn-secondary">
               Disconnect
             </button>
           )}
-          
+
           <button
+            type="button"
             onClick={onTogglePause}
             disabled={!isConnected}
             className="btn btn-secondary"
           >
             {isPaused ? 'Resume' : 'Pause'}
           </button>
-          
-          <button onClick={onClear} className="btn btn-secondary">
+
+          <button type="button" onClick={onClear} className="btn btn-secondary">
             Clear
           </button>
         </div>
@@ -114,4 +113,3 @@ export default function Controls({
     </div>
   );
 }
-

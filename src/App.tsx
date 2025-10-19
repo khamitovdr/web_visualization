@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Chart from './components/Chart';
 import Controls from './components/Controls';
-import { WebSocketService, ConnectionStatus } from './services/websocket';
 import { useRealtimeData } from './hooks/useRealtimeData';
+import { type ConnectionStatus, WebSocketService } from './services/websocket';
 import './App.css';
 
 const DEFAULT_SERVER_URL = 'ws://localhost:8004';
@@ -12,10 +12,10 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [error, setError] = useState<string | null>(null);
   const [chartSize, setChartSize] = useState({ width: 800, height: 400 });
-  
+
   const wsServiceRef = useRef<WebSocketService>(new WebSocketService());
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const { series, addDataPoint, clearData, isPaused, togglePause } = useRealtimeData();
 
   // Handle window resize for responsive chart
@@ -31,7 +31,7 @@ function App() {
 
     updateChartSize();
     window.addEventListener('resize', updateChartSize);
-    
+
     // Small delay to ensure container is rendered
     setTimeout(updateChartSize, 100);
 
@@ -40,7 +40,7 @@ function App() {
 
   const handleConnect = useCallback(() => {
     setError(null);
-    
+
     wsServiceRef.current.connect(serverUrl, {
       onMessage: (data) => {
         addDataPoint(data);
@@ -114,4 +114,3 @@ function App() {
 }
 
 export default App;
-

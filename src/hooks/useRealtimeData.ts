@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { WebSocketMessage } from '../services/websocket';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { WebSocketMessage } from '../services/websocket';
 
 export interface DataSeries {
   name: string;
@@ -15,37 +15,9 @@ export function useRealtimeData() {
   const lastUpdateRef = useRef<number>(0);
   const throttleDelay = 16; // ~60 FPS
 
-  const addDataPoint = useCallback((message: WebSocketMessage) => {
-    // Message now contains full dataset for each series
-    // Format: { "cpu": [[ts, val], ...], "memory": [[ts, val], ...] }
-    
-    const seriesNames = Object.keys(message);
-    
-    // Replace all data with the new full dataset
-    seriesNames.forEach(name => {
-      const seriesData = message[name];
-      
-      // Keep only last MAX_DATA_POINTS if dataset is too large
-      if (seriesData.length > MAX_DATA_POINTS) {
-        dataBufferRef.current.set(name, seriesData.slice(-MAX_DATA_POINTS));
-      } else {
-        dataBufferRef.current.set(name, seriesData);
-      }
-    });
-
-    // Throttle updates for performance
-    if (!isPaused) {
-      const now = Date.now();
-      if (now - lastUpdateRef.current >= throttleDelay) {
-        updateSeries();
-        lastUpdateRef.current = now;
-      }
-    }
-  }, [isPaused]);
-
   const updateSeries = useCallback(() => {
     const newSeries: DataSeries[] = [];
-    
+
     dataBufferRef.current.forEach((data, name) => {
       newSeries.push({
         name,
@@ -56,13 +28,44 @@ export function useRealtimeData() {
     setSeries(newSeries);
   }, []);
 
+  const addDataPoint = useCallback(
+    (message: WebSocketMessage) => {
+      // Message now contains full dataset for each series
+      // Format: { "cpu": [[ts, val], ...], "memory": [[ts, val], ...] }
+
+      const seriesNames = Object.keys(message);
+
+      // Replace all data with the new full dataset
+      seriesNames.forEach((name) => {
+        const seriesData = message[name];
+
+        // Keep only last MAX_DATA_POINTS if dataset is too large
+        if (seriesData.length > MAX_DATA_POINTS) {
+          dataBufferRef.current.set(name, seriesData.slice(-MAX_DATA_POINTS));
+        } else {
+          dataBufferRef.current.set(name, seriesData);
+        }
+      });
+
+      // Throttle updates for performance
+      if (!isPaused) {
+        const now = Date.now();
+        if (now - lastUpdateRef.current >= throttleDelay) {
+          updateSeries();
+          lastUpdateRef.current = now;
+        }
+      }
+    },
+    [isPaused, updateSeries]
+  );
+
   const clearData = useCallback(() => {
     dataBufferRef.current.clear();
     setSeries([]);
   }, []);
 
   const togglePause = useCallback(() => {
-    setIsPaused(prev => {
+    setIsPaused((prev) => {
       const newPaused = !prev;
       // If unpausing, update the chart with buffered data
       if (!newPaused) {
@@ -78,7 +81,7 @@ export function useRealtimeData() {
       const interval = setInterval(() => {
         updateSeries();
       }, throttleDelay);
-      
+
       return () => clearInterval(interval);
     }
   }, [isPaused, updateSeries]);
@@ -91,4 +94,3 @@ export function useRealtimeData() {
     togglePause,
   };
 }
-

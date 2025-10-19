@@ -45,7 +45,7 @@ export class WebSocketService {
       this.ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data) as WebSocketMessage;
-          
+
           // Validate that we have at least one series with data
           const seriesNames = Object.keys(data);
           if (seriesNames.length > 0 && Array.isArray(data[seriesNames[0]])) {
@@ -87,10 +87,12 @@ export class WebSocketService {
     }
 
     // Exponential backoff: 1s, 2s, 4s, 8s, 16s
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 16000);
+    const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 16000);
     this.reconnectAttempts++;
 
-    console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+    console.log(
+      `Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
+    );
 
     this.reconnectTimeout = window.setTimeout(() => {
       this.createConnection();
@@ -99,7 +101,7 @@ export class WebSocketService {
 
   disconnect(): void {
     this.shouldReconnect = false;
-    
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
@@ -117,4 +119,3 @@ export class WebSocketService {
     return this.ws?.readyState === WebSocket.OPEN;
   }
 }
-

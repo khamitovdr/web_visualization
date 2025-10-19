@@ -1,8 +1,8 @@
 import { memo, useMemo } from 'react';
+import type uPlot from 'uplot';
 import UplotReact from 'uplot-react';
-import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
-import { DataSeries } from '../hooks/useRealtimeData';
+import type { DataSeries } from '../hooks/useRealtimeData';
 
 interface ChartProps {
   series: DataSeries[];
@@ -33,21 +33,24 @@ function Chart({ series, width, height }: ChartProps) {
 
     // Combine all series data by timestamp
     const timestampMap = new Map<number, number[]>();
-    
+
     series.forEach((s, idx) => {
       s.data.forEach(([timestamp, value]) => {
         if (!timestampMap.has(timestamp)) {
           timestampMap.set(timestamp, new Array(series.length).fill(null));
         }
-        timestampMap.get(timestamp)![idx] = value;
+        const row = timestampMap.get(timestamp);
+        if (row) {
+          row[idx] = value;
+        }
       });
     });
 
     // Sort by timestamp and convert to uPlot format
     const sortedTimestamps = Array.from(timestampMap.keys()).sort((a, b) => a - b);
-    const timestamps = sortedTimestamps.map(t => t / 1000); // Convert to seconds for uPlot
-    const seriesData = series.map((_, idx) => 
-      sortedTimestamps.map(t => timestampMap.get(t)![idx])
+    const timestamps = sortedTimestamps.map((t) => t / 1000); // Convert to seconds for uPlot
+    const seriesData = series.map((_, idx) =>
+      sortedTimestamps.map((t) => timestampMap.get(t)?.[idx])
     );
 
     const data: uPlot.AlignedData = [timestamps, ...seriesData];
@@ -108,10 +111,11 @@ function getChartOptions(series: DataSeries[], width: number, height: number): u
       {
         label: 'Time',
         space: 60,
-        values: (_, ticks) => ticks.map(t => {
-          const date = new Date(t * 1000);
-          return date.toLocaleTimeString();
-        }),
+        values: (_, ticks) =>
+          ticks.map((t) => {
+            const date = new Date(t * 1000);
+            return date.toLocaleTimeString();
+          }),
       },
       {
         label: 'Value',
@@ -137,4 +141,3 @@ function getChartOptions(series: DataSeries[], width: number, height: number): u
 }
 
 export default memo(Chart);
-

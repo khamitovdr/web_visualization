@@ -65,7 +65,7 @@
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.875rem;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   transition: border-color 0.2s;
 }
 
@@ -97,8 +97,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .status-text {
@@ -201,4 +206,3 @@
     flex: 1;
   }
 }
-
