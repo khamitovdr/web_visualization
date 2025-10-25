@@ -26,7 +26,7 @@ function Chart({ series, width, height }: ChartProps) {
     // If no data, return empty chart
     if (series.length === 0) {
       return {
-        data: [[], []],
+        data: [[], []] as uPlot.AlignedData,
         options: getEmptyOptions(width, height),
       };
     }

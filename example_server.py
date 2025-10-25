@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """
-Example WebSocket server for testing the real-time visualization app.
+WebSocket server for real-time CSV data visualization.
 
-This server sends simulated data with multiple series (cpu, memory, disk)
-to connected WebSocket clients.
+This server monitors a CSV file and sends its contents to connected
+WebSocket clients whenever the file changes.
+
+CSV Format:
+    - Two columns: timestamp,value
+    - No header row
+    - Timestamp format: "2025-10-19 17:50:21.143882"
 
 Requirements:
     pip install websockets
@@ -14,60 +19,120 @@ Usage:
 
 import asyncio
 import json
-import time
-import math
+import os
+import csv
+from pathlib import Path
+from datetime import datetime
 import websockets
 
 
-async def data_generator(websocket):
-    """Send simulated real-time data to connected clients."""
-    print(f"Client connected: {websocket.remote_address}")
+# Configuration
+CSV_FILE_PATH = "/Users/khamitovdr/bio_tools/examples/experiment_results_20251019_193343/Optical density.csv"  # Path to CSV file to monitor
+CHECK_INTERVAL = 0.5  # Check file every 500ms
+MAX_POINTS = 1000  # Maximum points to keep in memory
+
+
+def get_measurement_name(file_path):
+    """Extract measurement name from filename (without extension)."""
+    return Path(file_path).stem
+
+
+def parse_timestamp(timestamp_str):
+    """
+    Parse timestamp string to milliseconds since epoch.
+    
+    Supports formats:
+    - "2025-10-19 17:50:21.143882"
+    - "2025-10-19 17:50:21"
+    - Unix milliseconds (int/float)
+    
+    Returns timestamp in milliseconds.
+    """
+    try:
+        # Try to parse as datetime string
+        if isinstance(timestamp_str, str) and '-' in timestamp_str:
+            # Parse datetime format
+            dt = datetime.fromisoformat(timestamp_str)
+            # Convert to milliseconds
+            return int(dt.timestamp() * 1000)
+        else:
+            # Try to parse as numeric (milliseconds)
+            return int(float(timestamp_str))
+    except Exception as e:
+        raise ValueError(f"Cannot parse timestamp: {timestamp_str}") from e
+
+
+def read_csv_data(file_path):
+    """Read CSV file and return data as list of [timestamp, value] pairs."""
+    data = []
     
     try:
-        start_time = time.time()
-        counter = 0
+        with open(file_path, 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if len(row) >= 2:
+                    try:
+                        # Parse timestamp (handles both datetime strings and numeric)
+                        timestamp = parse_timestamp(row[0])
+                        value = float(row[1])
+                        data.append([timestamp, value])
+                    except (ValueError, IndexError):
+                        # Skip invalid rows
+                        continue
         
-        # Store historical data (keeping last 1000 points)
-        max_points = 1000
-        cpu_data = []
-        memory_data = []
-        disk_data = []
-        
+        # Keep only last MAX_POINTS
+        if len(data) > MAX_POINTS:
+            data = data[-MAX_POINTS:]
+            
+        return data
+    
+    except FileNotFoundError:
+        print(f"Warning: File {file_path} not found")
+        return []
+    except Exception as e:
+        print(f"Error reading CSV: {e}")
+        return []
+
+
+async def file_monitor(websocket):
+    """Monitor CSV file and send data to client on changes."""
+    print(f"Client connected: {websocket.remote_address}")
+    
+    measurement_name = get_measurement_name(CSV_FILE_PATH)
+    last_modified = 0
+    last_data = []
+    
+    try:
         while True:
-            elapsed = time.time() - start_time
-            timestamp = int(time.time() * 1000)  # milliseconds
+            # Check if file has been modified
+            try:
+                current_modified = os.path.getmtime(CSV_FILE_PATH)
+            except FileNotFoundError:
+                # File doesn't exist yet, wait and retry
+                await asyncio.sleep(CHECK_INTERVAL)
+                continue
             
-            # Generate new data points
-            cpu_value = 50 + 30 * math.sin(elapsed / 2)
-            memory_value = 60 + 20 * math.cos(elapsed / 3)
-            disk_value = 40 + 15 * math.sin(elapsed / 5)
+            # File changed or first read
+            if current_modified != last_modified:
+                last_modified = current_modified
+                
+                # Read CSV data
+                data = read_csv_data(CSV_FILE_PATH)
+                
+                # Only send if data is not empty and has changed
+                if data and data != last_data:
+                    last_data = data
+                    
+                    # Send full dataset
+                    message = {
+                        measurement_name: data
+                    }
+                    
+                    await websocket.send(json.dumps(message))
+                    print(f"Sent {len(data)} points for '{measurement_name}' to {websocket.remote_address}")
             
-            # Append to historical data
-            cpu_data.append([timestamp, cpu_value])
-            memory_data.append([timestamp, memory_value])
-            disk_data.append([timestamp, disk_value])
-            
-            # Keep only last max_points
-            if len(cpu_data) > max_points:
-                cpu_data.pop(0)
-                memory_data.pop(0)
-                disk_data.pop(0)
-            
-            # Send FULL dataset each time
-            data = {
-                "cpu": cpu_data.copy(),
-                "memory": memory_data.copy(),
-                "disk": disk_data.copy(),
-            }
-            
-            await websocket.send(json.dumps(data))
-            
-            counter += 1
-            if counter % 100 == 0:
-                print(f"Sent {counter} updates ({len(cpu_data)} points per series) to {websocket.remote_address}")
-            
-            # Send data every 100ms (10 updates per second)
-            await asyncio.sleep(0.1)
+            # Wait before next check
+            await asyncio.sleep(CHECK_INTERVAL)
             
     except websockets.exceptions.ConnectionClosed:
         print(f"Client disconnected: {websocket.remote_address}")
@@ -78,13 +143,21 @@ async def data_generator(websocket):
 async def main():
     """Start WebSocket server on localhost:8004."""
     host = "localhost"
-    port = 8004
+    port = 8005
     
-    print(f"Starting WebSocket server on ws://{host}:{port}")
+    print("WebSocket server for CSV file monitoring")
+    print(f"Monitoring file: {CSV_FILE_PATH}")
+    print(f"Measurement name: {get_measurement_name(CSV_FILE_PATH)}")
+    print(f"Server running on ws://{host}:{port}")
     print("Press Ctrl+C to stop")
     print("-" * 50)
     
-    async with websockets.serve(data_generator, host, port):
+    # Check if file exists
+    if not os.path.exists(CSV_FILE_PATH):
+        print(f"\nWarning: CSV file '{CSV_FILE_PATH}' not found!")
+        print("Server will wait for the file to be created...")
+    
+    async with websockets.serve(file_monitor, host, port):
         await asyncio.Future()  # run forever
 
 
